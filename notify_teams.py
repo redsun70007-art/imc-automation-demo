@@ -154,16 +154,29 @@ def send_to_teams(card, webhook_url):
         return res.status
 
 
-def main():
-    webhook_url = os.environ.get("TEAMS_WEBHOOK_URL")
-    dry_run = os.environ.get("DRY_RUN") == "1"
+def collect_webhooks():
+    """등록된 Webhook URL들을 라벨과 함께 모음. 있는 것만 발송 대상."""
+    targets = {}
+    channel_url = os.environ.get("TEAMS_WEBHOOK_URL_CHANNEL")
+    dm_url = os.environ.get("TEAMS_WEBHOOK_URL_DM")
+    if channel_url:
+        targets["채널"] = channel_url
+    if dm_url:
+        targets["담당자 DM"] = dm_url
+    return targets
 
-    if not webhook_url and not dry_run:
-        sys.exit("❌ TEAMS_WEBHOOK_URL 환경변수가 필요합니다. (또는 DRY_RUN=1)")
+
+def main():
+    dry_run = os.environ.get("DRY_RUN") == "1"
+    targets = collect_webhooks()
+
+    if not targets and not dry_run:
+        sys.exit("❌ TEAMS_WEBHOOK_URL_CHANNEL 또는 TEAMS_WEBHOOK_URL_DM 환경변수가 필요합니다.")
 
     items = load_data()
     today = datetime.now(KST).date()
     print(f"[info] today (KST) = {today}, dry_run = {dry_run}")
+    print(f"[info] 발송 대상: {list(targets.keys()) if targets else '(dry-run only)'}")
 
     last = last_end_dates(items)
 
@@ -191,8 +204,9 @@ def main():
         print(json.dumps(card, ensure_ascii=False, indent=2))
         return
 
-    status = send_to_teams(card, webhook_url)
-    print(f"✅ Teams 발송 완료 (HTTP {status})")
+    for label, url in targets.items():
+        status = send_to_teams(card, url)
+        print(f"✅ Teams 발송 완료 [{label}] (HTTP {status})")
 
 
 if __name__ == "__main__":

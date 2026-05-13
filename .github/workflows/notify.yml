@@ -26,6 +26,7 @@ jobs:
 
       - name: Run notify_teams.py
         env:
-          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          TEAMS_WEBHOOK_URL_CHANNEL: ${{ secrets.TEAMS_WEBHOOK_URL_CHANNEL }}
+          TEAMS_WEBHOOK_URL_DM: ${{ secrets.TEAMS_WEBHOOK_URL_DM }}
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
         run: python notify_teams.py
