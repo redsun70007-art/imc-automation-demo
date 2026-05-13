@@ -40,10 +40,24 @@ def last_end_dates(items):
     return last
 
 
-def classify(end_str, today):
+def parse_date(s):
+    """다양한 형식 허용: 2026-05-10, 2026.5.10, 2026/5/10, 2026. 5. 10. 등"""
+    if not isinstance(s, str):
+        return None
+    cleaned = s.replace(".", "-").replace("/", "-").replace(" ", "").rstrip("-")
+    parts = cleaned.split("-")
+    if len(parts) != 3:
+        return None
     try:
-        end = datetime.strptime(end_str, "%Y-%m-%d").date()
-    except (ValueError, TypeError):
+        y, m, d = int(parts[0]), int(parts[1]), int(parts[2])
+        return datetime(y, m, d).date()
+    except ValueError:
+        return None
+
+
+def classify(end_str, today):
+    end = parse_date(end_str)
+    if end is None:
         return None, None
     delta = (end - today).days
     if delta < 0:
