@@ -3,152 +3,152 @@
     "BRAND": "MLB",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "봄맞이 할인전",
-    "START_DATE": "2026.4.15",
-    "END_DATE": "2026.5.10",
+    "START_DATE": "2026-04-15",
+    "END_DATE": "2026-05-10",
     "STATUS": "종료"
   },
   {
     "BRAND": "MLB",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "어버이날 기획전",
-    "START_DATE": "2026.5.1",
-    "END_DATE": "2026.5.15",
+    "START_DATE": "2026-05-01",
+    "END_DATE": "2026-05-15",
     "STATUS": "진행중"
   },
   {
     "BRAND": "MLB",
     "CHANNEL": "무신사",
     "PROMO_NAME": "MLB 신상 발매",
-    "START_DATE": "2026.4.20",
-    "END_DATE": "2026.5.8",
+    "START_DATE": "2026-04-20",
+    "END_DATE": "2026-05-08",
     "STATUS": "종료"
   },
   {
     "BRAND": "MLB",
     "CHANNEL": "무신사",
     "PROMO_NAME": "스프링 컬렉션",
-    "START_DATE": "2026.5.10",
-    "END_DATE": "2026.5.25",
+    "START_DATE": "2026-05-10",
+    "END_DATE": "2026-05-25",
     "STATUS": "진행중"
   },
   {
     "BRAND": "MLB",
     "CHANNEL": "SSF샵",
     "PROMO_NAME": "MLB X SSF 단독",
-    "START_DATE": "2026.5.5",
-    "END_DATE": "2026.5.18",
+    "START_DATE": "2026-05-05",
+    "END_DATE": "2026-05-18",
     "STATUS": "진행중"
   },
   {
     "BRAND": "DISCOVERY",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "가정의달 특가",
-    "START_DATE": "2026.5.1",
-    "END_DATE": "2026.5.14",
+    "START_DATE": "2026-05-01",
+    "END_DATE": "2026-05-14",
     "STATUS": "진행중"
   },
   {
     "BRAND": "DISCOVERY",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "여름 캠핑 기획전",
-    "START_DATE": "2026.5.20",
-    "END_DATE": "2026.6.15",
+    "START_DATE": "2026-05-20",
+    "END_DATE": "2026-06-15",
     "STATUS": "예정"
   },
   {
     "BRAND": "DISCOVERY",
     "CHANNEL": "무신사",
     "PROMO_NAME": "디스커버리 봄세일",
-    "START_DATE": "2026.4.25",
-    "END_DATE": "2026.5.9",
+    "START_DATE": "2026-04-25",
+    "END_DATE": "2026-05-09",
     "STATUS": "종료"
   },
   {
     "BRAND": "DISCOVERY",
     "CHANNEL": "무신사",
     "PROMO_NAME": "썸머 룩북",
-    "START_DATE": "2026.5.15",
-    "END_DATE": "2026.5.30",
+    "START_DATE": "2026-05-15",
+    "END_DATE": "2026-05-30",
     "STATUS": "진행중"
   },
   {
     "BRAND": "DISCOVERY",
     "CHANNEL": "SSG닷컴",
     "PROMO_NAME": "프리미엄 백팩 단독",
-    "START_DATE": "2026.5.1",
-    "END_DATE": "2026.5.17",
+    "START_DATE": "2026-05-01",
+    "END_DATE": "2026-05-17",
     "STATUS": "진행중"
   },
   {
     "BRAND": "DUVETICA",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "F/W 프리오더",
-    "START_DATE": "2026.4.10",
-    "END_DATE": "2026.5.5",
+    "START_DATE": "2026-04-10",
+    "END_DATE": "2026-05-05",
     "STATUS": "종료"
   },
   {
     "BRAND": "DUVETICA",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "스프링 클리어런스",
-    "START_DATE": "2026.5.1",
-    "END_DATE": "2026.5.20",
+    "START_DATE": "2026-05-01",
+    "END_DATE": "2026-05-20",
     "STATUS": "진행중"
   },
   {
     "BRAND": "STRETCH ANGELS",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "화이트데이 기획전",
-    "START_DATE": "2026.3.1",
-    "END_DATE": "2026.3.15",
+    "START_DATE": "2026-03-01",
+    "END_DATE": "2026-03-15",
     "STATUS": "종료"
   },
   {
     "BRAND": "STRETCH ANGELS",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "라이트백 출시",
-    "START_DATE": "2026.5.10",
-    "END_DATE": "2026.5.19",
+    "START_DATE": "2026-05-10",
+    "END_DATE": "2026-05-19",
     "STATUS": "진행중"
   },
   {
     "BRAND": "STRETCH ANGELS",
     "CHANNEL": "29CM",
     "PROMO_NAME": "SA X 29CM 콜라보",
-    "START_DATE": "2026.5.12",
-    "END_DATE": "2026.5.26",
+    "START_DATE": "2026-05-12",
+    "END_DATE": "2026-05-26",
     "STATUS": "진행중"
   },
   {
     "BRAND": "SUPRA",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "스니커즈 페스타",
-    "START_DATE": "2026.4.20",
-    "END_DATE": "2026.5.11",
+    "START_DATE": "2026-04-20",
+    "END_DATE": "2026-05-11",
     "STATUS": "종료"
   },
   {
     "BRAND": "SUPRA",
     "CHANNEL": "무신사",
     "PROMO_NAME": "SUPRA 신상",
-    "START_DATE": "2026.5.5",
-    "END_DATE": "2026.6.5",
+    "START_DATE": "2026-05-05",
+    "END_DATE": "2026-06-05",
     "STATUS": "진행중"
   },
   {
     "BRAND": "TAILORED",
     "CHANNEL": "자사몰",
     "PROMO_NAME": "봄 클래식",
-    "START_DATE": "2026.4.15",
-    "END_DATE": "2026.5.10",
+    "START_DATE": "2026-04-15",
+    "END_DATE": "2026-05-10",
     "STATUS": "종료"
   },
   {
     "BRAND": "TAILORED",
     "CHANNEL": "SSF샵",
     "PROMO_NAME": "비즈니스 캐주얼",
-    "START_DATE": "2026.5.1",
-    "END_DATE": "2026.5.20",
+    "START_DATE": "2026-05-01",
+    "END_DATE": "2026-05-20",
     "STATUS": "진행중"
   }
 ]
