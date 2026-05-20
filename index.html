@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F&F IMC 프로모션 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117;
+    color: #e0e6f0;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: #7ecfff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 12px;
+  }
+  .card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #1d4ed8, #06b6d4);
+  }
+  .card-title {
+    font-size: 0.7rem;
+    color: #64748b;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .legend-row {
+    display: flex;
+    gap: 12px;
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; }
+  canvas { display: block; }
+
+  /* gauge */
+  .gauge-wrap { position: relative; width: 100%; }
+  .gauge-score {
+    position: absolute;
+    bottom: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .gauge-score .label { font-size: 0.55rem; color: #64748b; letter-spacing: 2px; }
+  .gauge-score .value { font-size: 2rem; font-weight: 700; color: #7ecfff; line-height: 1; }
+
+  /* donut center text */
+  .donut-wrap { position: relative; }
+  .donut-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.4rem; font-weight: 700; color: #fff;
+    pointer-events: none;
+  }
+
+  /* concentric ring labels */
+  .ring-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;
+  }
+  .ring-pct { margin-left: auto; font-weight: 700; color: #e0e6f0; }
+  .ring-bar { flex: 1; height: 4px; border-radius: 2px; background: #1e293b; }
+  .ring-bar-fill { height: 100%; border-radius: 2px; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .stat-box { background: #0f172a; border-radius: 6px; padding: 10px; text-align: center; }
+  .stat-box .sv { font-size: 1.6rem; font-weight: 700; color: #38bdf8; }
+  .stat-box .sl { font-size: 0.62rem; color: #64748b; margin-top: 2px; }
+
+  /* span helpers */
+  .col-2 { grid-column: span 2; }
+  .col-1 { grid-column: span 1; }
+</style>
+</head>
+<body>
+<h1>F&amp;F IMC Promotion Dashboard</h1>
+<div class="grid" id="dashboard"></div>
+
+<script>
+// ── Raw data ──────────────────────────────────────────────────────
+const raw = [
+  {BRAND:"MLB",CHANNEL:"자사몰",PROMO_NAME:"봄맞이 할인전",START_DATE:"2026-04-15",END_DATE:"2026-05-10",STATUS:"종료"},
+  {BRAND:"MLB",CHANNEL:"자사몰",PROMO_NAME:"어버이날 기획전",START_DATE:"2026-05-01",END_DATE:"2026-05-15",STATUS:"진행중"},
+  {BRAND:"MLB",CHANNEL:"무신사",PROMO_NAME:"MLB 신상 발매",START_DATE:"2026-04-20",END_DATE:"2026-05-08",STATUS:"종료"},
+  {BRAND:"MLB",CHANNEL:"무신사",PROMO_NAME:"스프링 컬렉션",START_DATE:"2026-05-10",END_DATE:"2026-05-25",STATUS:"진행중"},
+  {BRAND:"MLB",CHANNEL:"SSF샵",PROMO_NAME:"MLB X SSF 단독",START_DATE:"2026-05-05",END_DATE:"2026-05-18",STATUS:"진행중"},
+  {BRAND:"DISCOVERY",CHANNEL:"자사몰",PROMO_NAME:"가정의달 특가",START_DATE:"2026-05-01",END_DATE:"2026-05-14",STATUS:"진행중"},
+  {BRAND:"DISCOVERY",CHANNEL:"자사몰",PROMO_NAME:"여름 캠핑 기획전",START_DATE:"2026-05-20",END_DATE:"2026-06-15",STATUS:"예정"},
+  {BRAND:"DISCOVERY",CHANNEL:"무신사",PROMO_NAME:"디스커버리 봄세일",START_DATE:"2026-04-25",END_DATE:"2026-05-09",STATUS:"종료"},
+  {BRAND:"DISCOVERY",CHANNEL:"무신사",PROMO_NAME:"썸머 룩북",START_DATE:"2026-05-15",END_DATE:"2026-05-30",STATUS:"진행중"},
+  {BRAND:"DISCOVERY",CHANNEL:"SSG닷컴",PROMO_NAME:"프리미엄 백팩 단독",START_DATE:"2026-05-01",END_DATE:"2026-05-17",STATUS:"진행중"},
+  {BRAND:"DUVETICA",CHANNEL:"자사몰",PROMO_NAME:"F/W 프리오더",START_DATE:"2026-04-10",END_DATE:"2026-05-05",STATUS:"종료"},
+  {BRAND:"DUVETICA",CHANNEL:"자사몰",PROMO_NAME:"스프링 클리어런스",START_DATE:"2026-05-01",END_DATE:"2026-05-20",STATUS:"진행중"},
+  {BRAND:"STRETCH ANGELS",CHANNEL:"자사몰",PROMO_NAME:"화이트데이 기획전",START_DATE:"2026-03-01",END_DATE:"2026-03-15",STATUS:"종료"},
+  {BRAND:"STRETCH ANGELS",CHANNEL:"자사몰",PROMO_NAME:"라이트백 출시",START_DATE:"2026-05-10",END_DATE:"2026-05-19",STATUS:"진행중"},
+  {BRAND:"STRETCH ANGELS",CHANNEL:"29CM",PROMO_NAME:"SA X 29CM 콜라보",START_DATE:"2026-05-12",END_DATE:"2026-05-26",STATUS:"진행중"},
+  {BRAND:"SUPRA",CHANNEL:"자사몰",PROMO_NAME:"스니커즈 페스타",START_DATE:"2026-04-20",END_DATE:"2026-05-11",STATUS:"종료"},
+  {BRAND:"SUPRA",CHANNEL:"무신사",PROMO_NAME:"SUPRA 신상",START_DATE:"2026-05-05",END_DATE:"2026-06-05",STATUS:"진행중"},
+  {BRAND:"TAILORED",CHANNEL:"자사몰",PROMO_NAME:"봄 클래식",START_DATE:"2026-04-15",END_DATE:"2026-05-10",STATUS:"종료"},
+  {BRAND:"TAILORED",CHANNEL:"SSF샵",PROMO_NAME:"비즈니스 캐주얼",START_DATE:"2026-05-01",END_DATE:"2026-05-20",STATUS:"진행중"}
+];
+
+// ── Color palette ─────────────────────────────────────────────────
+const C = {
+  blue:  '#1d6af5',
+  cyan:  '#06b6d4',
+  green: '#10b981',
+  teal:  '#14b8a6',
+  indigo:'#6366f1',
+  sky:   '#38bdf8',
+  gray:  '#334155',
+  bg:    '#111827',
+};
+const BRAND_COLORS = {
+  MLB: C.blue, DISCOVERY: C.cyan, DUVETICA: C.green,
+  'STRETCH ANGELS': C.teal, SUPRA: C.indigo, TAILORED: C.sky
+};
+
+// ── Derived stats ─────────────────────────────────────────────────
+const brands     = [...new Set(raw.map(d=>d.BRAND))];
+const channels   = [...new Set(raw.map(d=>d.CHANNEL))];
+const statusCnt  = {진행중:0, 종료:0, 예정:0};
+raw.forEach(d=>statusCnt[d.STATUS]++);
+
+const brandCnt   = {};
+brands.forEach(b=>{ brandCnt[b] = raw.filter(d=>d.BRAND===b).length; });
+
+const channelCnt = {};
+channels.forEach(ch=>{ channelCnt[ch] = raw.filter(d=>d.CHANNEL===ch).length; });
+
+// active ratio per brand (진행중/total)
+const brandActive = {};
+brands.forEach(b=>{
+  const tot = raw.filter(d=>d.BRAND===b).length;
+  const act = raw.filter(d=>d.BRAND===b&&d.STATUS==='진행중').length;
+  brandActive[b] = Math.round(act/tot*100);
+});
+
+// promotions starting per month-week bucket (for bar chart)
+const weekBuckets = ['4월1주','4월2주','4월3주','4월4주','5월1주','5월2주','5월3주','5월4주'];
+function getBucket(dateStr){
+  const d=new Date(dateStr); const m=d.getMonth()+1; const w=Math.ceil(d.getDate()/7);
+  if(m===4) return `4월${w}주`; if(m===5) return `5월${w}주`; return null;
+}
+const bucketStart={}, bucketEnd={};
+weekBuckets.forEach(b=>{bucketStart[b]=0;bucketEnd[b]=0;});
+raw.forEach(d=>{
+  const s=getBucket(d.START_DATE); if(s&&bucketStart[s]!==undefined) bucketStart[s]++;
+  const e=getBucket(d.END_DATE);   if(e&&bucketEnd[e]!==undefined)   bucketEnd[e]++;
+});
+
+// Channel promo count (horizontal bar)
+const chLabels = Object.keys(channelCnt);
+const chValues = chLabels.map(c=>channelCnt[c]);
+const chMax = Math.max(...chValues);
+
+// Line chart: running active promos by day (Apr 1 ~ Jun 15)
+function daysBetween(a,b){
+  const da=new Date(a), db=new Date(b);
+  const arr=[];
+  for(let d=new Date(da);d<=db;d.setDate(d.getDate()+1)) arr.push(new Date(d));
+  return arr;
+}
+const dayLabels=[];
+const lineStart=new Date('2026-04-01'), lineEnd=new Date('2026-06-15');
+for(let d=new Date(lineStart);d<=lineEnd;d.setDate(d.getDate()+7)){
+  dayLabels.push(d.toISOString().slice(5,10));
+}
+function activeOnDay(brand, dateStr){
+  const d=new Date(dateStr);
+  return raw.filter(r=>(!brand||r.BRAND===brand)&&new Date(r.START_DATE)<=d&&new Date(r.END_DATE)>=d).length;
+}
+const lineMLB = dayLabels.map(d=>activeOnDay('MLB','2026-'+d));
+const lineDISC= dayLabels.map(d=>activeOnDay('DISCOVERY','2026-'+d));
+const lineOther= dayLabels.map(d=>activeOnDay(null,'2026-'+d));
+
+// score = % of promos currently active or planned / total
+const score = Math.round((statusCnt['진행중']+statusCnt['예정'])/raw.length*100);
+
+// ── Build DOM ─────────────────────────────────────────────────────
+const dash = document.getElementById('dashboard');
+
+function card(id, title, spanClass='col-1', extraHtml=''){
+  const div = document.createElement('div');
+  div.className = `card ${spanClass}`;
+  div.innerHTML = `<div class="card-title">${title}</div>${extraHtml}<canvas id="${id}"></canvas>`;
+  dash.appendChild(div);
+  return div;
+}
+
+// ── 1. Status Donut ───────────────────────────────────────────────
+{
+  const d=card('c1','프로모션 현황');
+  d.querySelector('canvas').style.height='160px';
+  const wrap=document.createElement('div');
+  wrap.className='donut-wrap';
+  wrap.style.position='relative';
+  const cv=d.querySelector('canvas');
+  wrap.appendChild(cv);
+  const center=document.createElement('div');
+  center.className='donut-center';
+  const pct=Math.round(statusCnt['진행중']/raw.length*100);
+  center.textContent=pct+'%';
+  wrap.appendChild(center);
+  d.appendChild(wrap);
+  new Chart(cv,{
+    type:'doughnut',
+    data:{
+      labels:['진행중','종료','예정'],
+      datasets:[{data:[statusCnt['진행중'],statusCnt['종료'],statusCnt['예정']],
+        backgroundColor:[C.cyan,C.gray,C.green],borderWidth:0,hoverOffset:4}]
+    },
+    options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}건`}}},animation:{animateRotate:true}}
+  });
+  const leg=document.createElement('div'); leg.className='legend-row'; leg.style.justifyContent='center';
+  [['진행중',C.cyan],['종료',C.gray],['예정',C.green]].forEach(([l,c])=>{
+    leg.innerHTML+=`<span class="legend-item"><span class="legend-dot" style="background:${c}"></span>${l}</span>`;
+  });
+  d.appendChild(leg);
+}
+
+// ── 2. Brand Donut ────────────────────────────────────────────────
+{
+  const d=card('c2','브랜드별 비중');
+  const cv=d.querySelector('canvas'); cv.style.height='160px';
+  const wrap=document.createElement('div'); wrap.className='donut-wrap'; wrap.style.position='relative';
+  wrap.appendChild(cv);
+  const center=document.createElement('div'); center.className='donut-center';
+  center.style.fontSize='0.9rem'; center.textContent=brands.length+'\nBRANDS';
+  center.style.whiteSpace='pre'; center.style.textAlign='center'; center.style.lineHeight='1.2';
+  wrap.appendChild(center); d.appendChild(wrap);
+  new Chart(cv,{
+    type:'doughnut',
+    data:{
+      labels:brands,
+      datasets:[{data:brands.map(b=>brandCnt[b]),
+        backgroundColor:brands.map(b=>BRAND_COLORS[b]),borderWidth:0,hoverOffset:4}]
+    },
+    options:{cutout:'62%',plugins:{legend:{display:false}},animation:{animateRotate:true}}
+  });
+  const leg=document.createElement('div'); leg.className='legend-row'; leg.style.justifyContent='center';
+  brands.forEach(b=>{
+    leg.innerHTML+=`<span class="legend-item"><span class="legend-dot" style="background:${BRAND_COLORS[b]}"></span>${b}</span>`;
+  });
+  d.appendChild(leg);
+}
+
+// ── 3. Radar Chart ────────────────────────────────────────────────
+{
+  const d=card('c3','채널×브랜드 레이더');
+  const cv=d.querySelector('canvas'); cv.style.height='190px';
+  const leg=document.createElement('div'); leg.className='legend-row';
+  [['MLB',C.blue],['DISCOVERY',C.cyan]].forEach(([l,c])=>{
+    leg.innerHTML+=`<span class="legend-item"><span class="legend-dot" style="background:${c}"></span>${l}</span>`;
+  });
+  d.insertBefore(leg,cv);
+  const gridOpts={color:'rgba(255,255,255,0.06)'};
+  new Chart(cv,{
+    type:'radar',
+    data:{
+      labels:channels,
+      datasets:[
+        {label:'MLB',data:channels.map(ch=>raw.filter(r=>r.BRAND==='MLB'&&r.CHANNEL===ch).length),
+          borderColor:C.blue,backgroundColor:'rgba(29,106,245,0.2)',pointBackgroundColor:C.blue,borderWidth:2,pointRadius:3},
+        {label:'DISCOVERY',data:channels.map(ch=>raw.filter(r=>r.BRAND==='DISCOVERY'&&r.CHANNEL===ch).length),
+          borderColor:C.cyan,backgroundColor:'rgba(6,182,212,0.2)',pointBackgroundColor:C.cyan,borderWidth:2,pointRadius:3}
+      ]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{r:{
+        ticks:{display:false},
+        grid:gridOpts, angleLines:{color:'rgba(255,255,255,0.06)'},
+        pointLabels:{color:'#94a3b8',font:{size:10}},
+        suggestedMin:0,suggestedMax:3
+      }}
+    }
+  });
+}
+
+// ── 4. Gauge Chart ────────────────────────────────────────────────
+{
+  const d=card('c4','활성화 스코어');
+  const wrap=document.createElement('div'); wrap.className='gauge-wrap';
+  const cv=d.querySelector('canvas'); cv.style.height='160px';
+  wrap.appendChild(cv);
+  const scoreDiv=document.createElement('div'); scoreDiv.className='gauge-score';
+  scoreDiv.innerHTML=`<div class="label">SCORE</div><div class="value">${score}</div>`;
+  wrap.appendChild(scoreDiv); d.appendChild(wrap);
+
+  const gaugeVal=score/100;
+  new Chart(cv,{
+    type:'doughnut',
+    data:{
+      datasets:[{
+        data:[gaugeVal,1-gaugeVal,1],
+        backgroundColor:[C.cyan,C.gray,'transparent'],
+        borderWidth:0,
+        circumference:180,rotation:270,
+      }]
+    },
+    options:{cutout:'75%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+  });
+}
+
+// ── 5. Bar+Line Combo (주차별 시작/종료) ──────────────────────────
+{
+  const d=card('c5','주차별 프로모션 시작/종료','col-2');
+  const cv=d.querySelector('canvas'); cv.style.height='180px';
+  const leg=document.createElement('div'); leg.className='legend-row';
+  [['시작',C.blue],['종료',C.cyan]].forEach(([l,c])=>{
+    leg.innerHTML+=`<span class="legend-item"><span class="legend-dot" style="background:${c}"></span>${l}</span>`;
+  });
+  d.insertBefore(leg,cv);
+  new Chart(cv,{
+    type:'bar',
+    data:{
+      labels:weekBuckets,
+      datasets:[
+        {label:'시작',data:weekBuckets.map(b=>bucketStart[b]),backgroundColor:'rgba(29,106,245,0.7)',order:2},
+        {label:'종료',data:weekBuckets.map(b=>bucketEnd[b]),
+          type:'line',borderColor:C.cyan,backgroundColor:'rgba(6,182,212,0.1)',
+          tension:0.4,pointRadius:4,pointBackgroundColor:C.cyan,order:1,yAxisID:'y2'}
+      ]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true},
+        y2:{position:'right',ticks:{color:C.cyan,font:{size:10}},grid:{display:false},beginAtZero:true}
+      }
+    }
+  });
+}
+
+// ── 6. Horizontal Bar (채널별) ────────────────────────────────────
+{
+  const d=card('c6','채널별 프로모션 수','col-1');
+  const cv=d.querySelector('canvas'); cv.style.height='180px';
+  new Chart(cv,{
+    type:'bar',
+    data:{
+      labels:chLabels,
+      datasets:[{
+        data:chValues,
+        backgroundColor:chValues.map((_,i)=>i%2===0?'rgba(29,106,245,0.8)':'rgba(6,182,212,0.8)'),
+        borderRadius:3,barThickness:16
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>`${c.raw}건 (${Math.round(c.raw/chMax*100)}%)`}}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true,max:chMax+1},
+        y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ── 7. Concentric Ring (브랜드 활성화율) ──────────────────────────
+{
+  const d=card('c7','브랜드 활성화율','col-1');
+  // 텍스트 rows
+  const colors=[C.blue,C.cyan,C.green,C.teal,C.indigo,C.sky];
+  brands.forEach((b,i)=>{
+    const row=document.createElement('div'); row.className='ring-row';
+    row.innerHTML=`<span class="legend-dot" style="background:${colors[i]}"></span>
+      <span style="font-size:0.68rem;white-space:nowrap">${b}</span>
+      <div class="ring-bar"><div class="ring-bar-fill" style="width:${brandActive[b]}%;background:${colors[i]}"></div></div>
+      <span class="ring-pct">${brandActive[b]}%</span>`;
+    d.appendChild(row);
+  });
+  const cv=d.querySelector('canvas'); cv.style.display='none';
+}
+
+// ── 8-10. Line Charts ─────────────────────────────────────────────
+function makeLineChart(id,title,datasets,spanClass='col-1'){
+  const d=card(id,title,spanClass);
+  const cv=d.querySelector('canvas'); cv.style.height='170px';
+  const leg=document.createElement('div'); leg.className='legend-row';
+  datasets.forEach(ds=>{
+    leg.innerHTML+=`<span class="legend-item"><span class="legend-dot" style="background:${ds.borderColor}"></span>${ds.label}</span>`;
+  });
+  d.insertBefore(leg,cv);
+  new Chart(cv,{
+    type:'line',
+    data:{labels:dayLabels,datasets},
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:9},maxTicksLimit:8},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}
+      },
+      elements:{point:{radius:3}}
+    }
+  });
+}
+
+makeLineChart('c8','MLB 활성 프로모션 추이',[
+  {label:'MLB',data:lineMLB,borderColor:C.blue,backgroundColor:'rgba(29,106,245,0.1)',fill:true,tension:0.4,pointBackgroundColor:C.blue},
+  {label:'전체',data:lineOther,borderColor:C.cyan,backgroundColor:'rgba(6,182,212,0.05)',fill:true,tension:0.4,pointRadius:2,borderDash:[4,4]}
+]);
+
+makeLineChart('c9','DISCOVERY 활성 프로모션 추이',[
+  {label:'DISCOVERY',data:lineDISC,borderColor:C.green,backgroundColor:'rgba(16,185,129,0.1)',fill:true,tension:0.4,pointBackgroundColor:C.green},
+  {label:'전체',data:lineOther,borderColor:C.blue,backgroundColor:'rgba(29,106,245,0.05)',fill:false,tension:0.4,pointRadius:2,borderDash:[4,4]}
+]);
+
+makeLineChart('c10','전체 활성 프로모션 추이',[
+  {label:'전체',data:lineOther,borderColor:C.sky,backgroundColor:'rgba(56,189,248,0.12)',fill:true,tension:0.4,pointBackgroundColor:C.sky},
+  {label:'MLB',data:lineMLB,borderColor:C.indigo,fill:false,tension:0.4,pointRadius:2},
+  {label:'DISCOVERY',data:lineDISC,borderColor:C.teal,fill:false,tension:0.4,pointRadius:2}
+]);
+
+// ── Summary stats ─────────────────────────────────────────────────
+{
+  const d=document.createElement('div');
+  d.className='card col-2';
+  d.innerHTML=`<div class="card-title">요약 통계</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="sv">${raw.length}</div><div class="sl">총 프로모션</div></div>
+      <div class="stat-box"><div class="sv" style="color:${C.cyan}">${statusCnt['진행중']}</div><div class="sl">진행중</div></div>
+      <div class="stat-box"><div class="sv" style="color:${C.gray}">${statusCnt['종료']}</div><div class="sl">종료</div></div>
+      <div class="stat-box"><div class="sv" style="color:${C.green}">${statusCnt['예정']}</div><div class="sl">예정</div></div>
+    </div>`;
+  dash.appendChild(d);
+}
+</script>
+</body>
+</html>
